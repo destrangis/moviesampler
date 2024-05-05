@@ -32,7 +32,7 @@ include-package-data = true
 where = ["."]
 
 [project.scripts]
-lbox = "moviesampler.main:main"
+moviesampler = "moviesampler.main:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "moviesampler.__version__"}
