@@ -10,6 +10,8 @@ class FrameGrabber:
     def __init__(self, video, progress=None):
         if progress is None:
             self.progress = self.progress_notify
+        else:
+            self.progress = progress
 
         self.movie = av.open(str(video))
         self.file_size = self.movie.size
@@ -60,5 +62,5 @@ class FrameGrabber:
         self.progress(extra=f"100% {self.str_duration}", end=True)
         return ret
 
-    def close():
+    def close(self):
         self.movie.close()
