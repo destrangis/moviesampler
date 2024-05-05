@@ -83,6 +83,9 @@ class ImageComposer:
 
 
     def header_image(self, width: int, text: str) -> Image.Image:
+        """
+        Create an Image with the given text
+        """
         text_lines = [ l.strip() for l in text.split("\n") ]
         fnt = ImageFont.truetype("3270-Regular", 20)
         height = 25
