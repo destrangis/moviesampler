@@ -1,4 +1,3 @@
-import pathlib
 import time
 
 import av
@@ -41,10 +40,9 @@ class FrameGrabber:
         ret = []
         skiptime = int(self.movie.duration/numframes)
         frames = self.movie.decode(self.vstream)
-        for i, frametime in enumerate(range(skiptime, self.movie.duration, skiptime)):
+        for frametime in range(skiptime, self.movie.duration, skiptime):
             self.movie.seek(frametime)
             frame = next(frames)
-            #frame = next(self.movie.decode(self.vstream))
 
             tframe = time_format(frame.time)
             self.progress(frame.time, tframe)
@@ -52,3 +50,6 @@ class FrameGrabber:
 
         self.progress(extra=f"100% {self.str_duration}", end=True)
         return ret
+
+    def close():
+        self.movie.close()
