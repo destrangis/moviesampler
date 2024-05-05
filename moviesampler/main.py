@@ -4,6 +4,7 @@ import pathlib
 import time
 import re
 
+from . import version
 from .framegrabber import FrameGrabber
 from .imagecomposer import ImageComposer
 
@@ -28,6 +29,8 @@ def human_size(size):
 
 def cli_options(argv):
     p = argparse.ArgumentParser()
+    p.add_argument("--version", "-v", action="version", version="%(prog)s " + version(),
+                    help="Print the program's version")
     p.add_argument("--geometry", "-g", metavar="ROWSxCOLS", default=f"{NUM_ROWS}x{NUM_COLS}",
                    help=f"Number of rows and columns. Default {NUM_ROWS}x{NUM_COLS}")
     p.add_argument("--quiet", "-q", action="store_true", default=False,
