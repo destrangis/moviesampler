@@ -13,6 +13,7 @@ class FrameGrabber:
         else:
             self.progress = progress
 
+        self.filename = video.name
         self.movie = av.open(str(video))
         self.file_size = self.movie.size
         self.bit_rate = self.movie.bit_rate
@@ -44,7 +45,7 @@ class FrameGrabber:
             print(extra)
         else:
             percent = int(nframe * 100 / self.duration)
-            print(f"{percent:3d}% {extra}\r", end="")
+            print(f"{self.filename} {percent:3d}% {extra}\r", end="")
 
 
     def get_video_frames(self, numframes):
@@ -59,7 +60,7 @@ class FrameGrabber:
             self.progress(frame.time, tframe)
             ret.append( (frame.to_image(), tframe) )
 
-        self.progress(extra=f"100% {self.str_duration}", end=True)
+        self.progress(extra=f"{self.filename} 100% {self.str_duration}", end=True)
         return ret
 
     def close(self):
