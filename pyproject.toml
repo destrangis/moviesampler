@@ -1,0 +1,41 @@
+[project]
+name = "moviesampler"
+description = "Video file thumbnailer"
+readme = "README.md"
+authors = [
+    { name = "Javier Llopis", email = "javier@llopis.me" }
+    ]
+dynamic = [ "version" ]
+dependencies = [ "av", "pillow" ]
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    ]
+
+[project.urls]
+Repository = "https://github.com/destrangis/moviesampler"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[project.scripts]
+lbox = "moviesampler.main:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "moviesampler.__version__"}
+
+[tool.setuptools.package-data]
+"*" = [ "*.otf" ]
