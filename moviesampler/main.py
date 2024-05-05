@@ -1,12 +1,16 @@
+import argparse
 import sys
 import pathlib
 import time
+import re
 
 from .framegrabber import FrameGrabber
 from .imagecomposer import ImageComposer
 
 NUM_ROWS = 4
 NUM_COLS = 3
+DEFAULT_SUFFIX = "_thumbs"
+GEOM_PATTERN = "(\d+)x(\d+)"
 
 def human_size(size):
     units = ["KB", "MB", "GB", "TB"]
@@ -22,21 +26,41 @@ def human_size(size):
         return "{0:.2f}{1}".format(n, lastu)
 
 
-def main(argv=None):
-    if argv is None:
-        argv = sys.argv[1:]
+def cli_options(argv):
+    p = argparse.ArgumentParser()
+    p.add_argument("--geometry", "-g", metavar="ROWSxCOLS", default=f"{NUM_ROWS}x{NUM_COLS}",
+                   help=f"Number of rows and columns. Default {NUM_ROWS}x{NUM_COLS}")
+    p.add_argument("--quiet", "-q", action="store_true", default=False,
+                   help="Quiet operation. No progress indicator")
+    p.add_argument("--output-dir", "-o", metavar="DIRECTORY", default=".", type=pathlib.Path,
+                    help="Directory on which to create the sampler. "
+                    "Defaults current working directory")
+    p.add_argument("--suffix", "-s", metavar="SUFFIX", default=DEFAULT_SUFFIX,
+                    help=f"Suffix for the output file name. Default is '{DEFAULT_SUFFIX}' "
+                         "e.g. if the file is named movie1.mp4, the output file will be "
+                         "movie1_thumbs.jpg")
+    p.add_argument("videofile", nargs="*", type=pathlib.Path, help="Video file to process")
+    return p.parse_args(argv)
 
-    rows = NUM_ROWS
-    cols = NUM_COLS
+def get_rows_cols(geometry):
+    match = re.search(GEOM_PATTERN, geometry)
+    if match:
+        rows = int(match.group(1))
+        cols = int(match.group(2))
+        return rows, cols
+    else:
+        raise RuntimeError(f"Bad shape '{geometry}'. Must be ROWSxCOLS")
 
-    if len(argv) < 1:
-        print(f"use: {sys.argv[0]} movie")
-        return 1
+def process_video(movie, rows, cols, options):
+    if options.quiet:
+        progress = lambda *args, **kwargs: None
+    else:
+        progress = None
 
-    movie = pathlib.Path(argv[0])
     movie_size = movie.stat().st_size
-    fg = FrameGrabber(movie)
+    fg = FrameGrabber(movie, progress)
     frames = fg.get_video_frames(cols*rows)
+    fg.close()
 
     if frames:
         header = (f"{movie.name} [{human_size(movie_size)}] "
@@ -44,8 +68,27 @@ def main(argv=None):
                   f"{fg.vcodec_info}\n"
                   f"{fg.acodec_info}")
         grid_img = ImageComposer(rows, cols, header).build_grid(frames)
-        outfile = movie.parent / (movie.stem + ".jpg")
+        outfile = options.output_dir / (movie.stem + options.suffix + ".jpg")
         grid_img.save(str(outfile))
+
+
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv[1:]
+
+    opts = cli_options(argv)
+    try:
+        rows, columns = get_rows_cols(opts.geometry)
+    except RuntimeError as err:
+        print(err)
+        return 1
+
+    for movie in opts.videofile:
+        try:
+            process_video(movie, rows, columns, opts)
+        except Exception as err:
+            print(err)
+
     return 0
 
 if __name__ == "__main__":
