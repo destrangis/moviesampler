@@ -52,7 +52,7 @@ class FrameGrabber:
         ret = []
         skiptime = int(self.movie.duration/numframes)
         frames = self.movie.decode(self.vstream)
-        for frametime in range(skiptime, self.movie.duration, skiptime):
+        for frametime in range(skiptime//2, self.movie.duration, skiptime):
             self.movie.seek(frametime)
             frame = next(frames)
 
