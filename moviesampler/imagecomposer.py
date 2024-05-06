@@ -5,6 +5,8 @@ from typing import List, Tuple
 import  importlib.resources as ir
 from PIL import Image, ImageDraw, ImageFont
 
+from . import version
+
 DEFAULT_FRAME_HEIGHT = 180
 
 
@@ -16,9 +18,9 @@ class ImageComposer:
         self.frame_height = frame_height
         self.header_text = header
         with ir.path("moviesampler.fonts", "3270Condensed-Regular.otf") as fnt1:
-            self.timestampfont = str(fnt1)
+            self.condensedfont = str(fnt1)
         with ir.path("moviesampler.fonts", "3270-Regular.otf") as fnt2:
-            self.titlefont = str(fnt2)
+            self.regularfont = str(fnt2)
 
 
     def build_grid(self, framelist: List[ Tuple[Image.Image, str] ]) -> Image.Image:
@@ -41,9 +43,15 @@ class ImageComposer:
         grid_width = max_width * num_cols + 2 * (num_cols - 1)
         grid_height = max_height * num_rows + 2 * (num_rows - 1)
 
-        hdr = self.header_image(grid_width, self.header_text)
-        hdr_width, hdr_height = hdr.size
+        hdr = self.text_image(grid_width, self.header_text)
+        hdr_height = hdr.size[1]
         grid_height += hdr_height
+
+        footer = self.text_image(grid_width, f"Created with moviesampler v{version()}", footer=True)
+        footer_height = footer.size[1]
+        footer_pos = grid_height
+        grid_height += footer_height
+
         grid_image = Image.new('RGB', (grid_width, grid_height), color='white')
         grid_image.paste(hdr, (0, 0))
 
@@ -55,6 +63,7 @@ class ImageComposer:
             y = row * (max_height + 2) + hdr_height
             grid_image.paste(img, (x, y))
 
+        grid_image.paste(footer, (0, footer_pos))
         return grid_image
 
 
@@ -70,7 +79,7 @@ class ImageComposer:
         # Create a Draw object for adding text to the image
         draw = ImageDraw.Draw(resized_img)
 
-        fnt = ImageFont.truetype(self.timestampfont, 15)
+        fnt = ImageFont.truetype(self.condensedfont, 15)
 
         # Get text size
         left, top, right, bottom = fnt.getbbox(timestamp)
@@ -85,21 +94,28 @@ class ImageComposer:
         return resized_img
 
 
-    def header_image(self, width: int, text: str) -> Image.Image:
+    def text_image(self, width: int, text: str, footer: bool = False) -> Image.Image:
         """
         Create an Image with the given text
         """
         text_lines = [ l.strip() for l in text.split("\n") ]
-        fnt = ImageFont.truetype(self.titlefont, 20)
-        height = 25
-        interline_height = 5
+
+        font = self.condensedfont if footer else self.regularfont
+        fontsize = 10 if footer else 20
+        fnt = ImageFont.truetype(font, fontsize)
+        height = 0 if footer else 25
+        interline_height = 0 if footer else 5
+
         for line in text_lines:
             l, t, r, b = fnt.getbbox(line)
             height += b - t + interline_height;
-        hdr = Image.new('RGB', (width, height), color="white")
-        draw = ImageDraw.Draw(hdr)
-        y = 10
+
+        img = Image.new('RGB', (width, height), color="white")
+        draw = ImageDraw.Draw(img)
+
+        y = 0 if footer else 10
         for line in text_lines:
             draw.text((10, y), line, fill="black", font=fnt)
             y += b-t+interline_height
-        return hdr
+
+        return img
