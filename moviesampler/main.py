@@ -3,6 +3,7 @@ import sys
 import pathlib
 import time
 import re
+import traceback
 
 from . import version
 from .framegrabber import FrameGrabber
@@ -90,7 +91,8 @@ def main(argv=None):
         try:
             process_video(movie, rows, columns, opts)
         except Exception as err:
-            print(err)
+            print(movie, err)
+            traceback.print_exc()
 
     return 0
 

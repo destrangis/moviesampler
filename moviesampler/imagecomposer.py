@@ -2,7 +2,7 @@
 from typing import List, Tuple
 
 
-
+import  importlib.resources as ir
 from PIL import Image, ImageDraw, ImageFont
 
 DEFAULT_FRAME_HEIGHT = 180
@@ -15,6 +15,11 @@ class ImageComposer:
         self.columns = columns
         self.frame_height = frame_height
         self.header_text = header
+        with ir.path("moviesampler.fonts", "3270Condensed-Regular.otf") as fnt1:
+            self.timestampfont = str(fnt1)
+        with ir.path("moviesampler.fonts", "3270-Regular.otf") as fnt2:
+            self.titlefont = str(fnt2)
+
 
     def build_grid(self, framelist: List[ Tuple[Image.Image, str] ]) -> Image.Image:
         """
@@ -65,9 +70,7 @@ class ImageComposer:
         # Create a Draw object for adding text to the image
         draw = ImageDraw.Draw(resized_img)
 
-        font_path = "3270Condensed-Regular"
-        font_size = 15
-        fnt = ImageFont.truetype(font_path, font_size)
+        fnt = ImageFont.truetype(self.timestampfont, 15)
 
         # Get text size
         left, top, right, bottom = fnt.getbbox(timestamp)
@@ -87,7 +90,7 @@ class ImageComposer:
         Create an Image with the given text
         """
         text_lines = [ l.strip() for l in text.split("\n") ]
-        fnt = ImageFont.truetype("3270-Regular", 20)
+        fnt = ImageFont.truetype(self.titlefont, 20)
         height = 25
         interline_height = 5
         for line in text_lines:
