@@ -7,7 +7,7 @@ import traceback
 
 from . import version
 from .framegrabber import FrameGrabber
-from .imagecomposer import ImageComposer
+from .imagecomposer import ImageComposer, DEFAULT_FRAME_HEIGHT
 
 NUM_ROWS = 4
 NUM_COLS = 3
@@ -43,6 +43,9 @@ def cli_options(argv):
                     help=f"Suffix for the output file name. Default is '{DEFAULT_SUFFIX}' "
                          "e.g. if the file is named movie1.mp4, the output file will be "
                          "movie1_thumbs.jpg")
+    p.add_argument("--frame-height", "-f", metavar="HEIGHT", default=DEFAULT_FRAME_HEIGHT, type=int,
+                    help="Height of the component videoframes, in pixels. The width will be calculated "
+                         f"from the aspect ratio. Default {DEFAULT_FRAME_HEIGHT}")
     p.add_argument("videofile", nargs="*", type=pathlib.Path, help="Video file to process")
     return p.parse_args(argv)
 
@@ -71,7 +74,8 @@ def process_video(movie, rows, cols, options):
                   f"{fg.str_duration}  {fg.fps} fps {human_size(fg.bit_rate)}ps\n"
                   f"{fg.vcodec_info}\n"
                   f"{fg.acodec_info}")
-        grid_img = ImageComposer(rows, cols, header).build_grid(frames)
+        ic = ImageComposer(rows, cols, header, options.frame_height)
+        grid_img = ic.build_grid(frames)
         outfile = options.output_dir / (movie.stem + options.suffix + ".jpg")
         grid_img.save(str(outfile))
 
